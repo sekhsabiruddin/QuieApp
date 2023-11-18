@@ -1,32 +1,60 @@
-import { useState } from "react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 function App() {
-  const [apidata, SetApidata] = useState([]);
-  const [tracker, Settraker] = useState(0);
-  const APIURL = "https://jsonplaceholder.typicode.com/users";
+  const [search, setSearch] = useState("");
+  const [apidata, setApidata] = useState(null);
 
-  const getData = async () => {
-    const reposnese = await fetch(APIURL);
-    const data = await reposnese.json();
-    SetApidata(data);
-  };
-  const sortTheData = () => {
-    if (tracker == 0 || tracker == 2) {
-      SetApidata([...apidata].sort((a, b) => a.name.length - b.name.length));
-      Settraker(1);
-    } else {
-      SetApidata([...apidata].sort((a, b) => b.name.length - a.name.length));
-      Settraker(2);
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        `https://disease.sh/v3/covid-19/countries/india`
+      );
+      const data = await response.json();
+      setApidata(data);
+    } catch (e) {
+      console.log(e);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSearch = async () => {
+    // Implement your search logic here
+    try {
+      const response = await fetch(
+        `https://disease.sh/v3/covid-19/countries/${search}`
+      );
+      const data = await response.json();
+      setApidata(data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
-    <div>
-      <button onClick={(e) => getData()}>Get Data</button>
-      <button onClick={sortTheData}>Sort Data</button>
-      {apidata && apidata.map((ele, i) => <li key={i}>{ele.name}</li>)}
-    </div>
+    <>
+      <div>
+        <input
+          type="search"
+          placeholder="Search here ..."
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <button onClick={handleSearch}>Search</button>
+      </div>
+      <ul>
+        {apidata !== null && Object.keys(apidata).length > 0 && (
+          <>
+            <li>Country: {apidata.country}</li>
+            <li>Cases: {apidata.cases}</li>
+            <li>Today Cases: {apidata.todayCases}</li>
+            <li>Deaths: {apidata.deaths}</li>
+            <li>Active: {apidata.active}</li>
+          </>
+        )}
+      </ul>
+    </>
   );
 }
-
 export default App;
